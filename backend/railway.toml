@@ -1,0 +1,14 @@
+# railway.toml — place this in the /backend folder when deploying to Railway
+[build]
+builder = "dockerfile"
+dockerfilePath = "Dockerfile"
+
+[deploy]
+startCommand = "sh -c 'python seed_data.py && uvicorn main:app --host 0.0.0.0 --port $PORT'"
+healthcheckPath = "/"
+healthcheckTimeout = 30
+restartPolicyType = "on-failure"
+restartPolicyMaxRetries = 3
+
+[variables]
+PORT = "8000"
