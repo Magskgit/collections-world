@@ -30,6 +30,8 @@ app.add_middleware(
     allow_origins=[
     "http://localhost:3000",
     "https://collections-world.vercel.app",
+    "https://www.collectionsworld.in",
+    "https://collectionsworld.in",
     ],
     allow_credentials=True,
     allow_methods=["*"],
