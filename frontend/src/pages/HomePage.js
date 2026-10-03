@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getCategories, getProducts } from '../services/api';
 import ProductCard from '../components/ProductCard';
+import HeroSlider from '../components/HeroSlider';
 
 export default function HomePage() {
   const [categories, setCategories] = useState([]);
@@ -17,33 +18,8 @@ export default function HomePage() {
 
   return (
     <div>
-      {/* ── Hero ─────────────────────────────────────────── */}
-      <section className="hero">
-        <div className="container">
-          <div className="hero__content">
-            <div className="hero__eyebrow">🎉 Now Bigger & Better!</div>
-            <h1 className="hero__title">
-              Shop Everything<br/>at <span>Collections World</span>
-            </h1>
-            <p className="hero__subtitle">
-              Baby dresses, toys, gifts, bags, fancy accessories, stationery &
-              our brand-new Sweet Escape café corner — all under one roof in Chennai!
-            </p>
-            <div className="hero__actions">
-              <button className="btn btn-primary" onClick={() => navigate('/products')}>
-                Shop Now 🛍️
-              </button>
-              <button className="btn btn-outline" onClick={() => navigate('/products?category=sweet-escape')}>
-                Sweet Escape 🍦
-              </button>
-            </div>
-          </div>
-        </div>
-        <div className="hero__badge">
-          <div className="hero__badge-pct">50%</div>
-          <div className="hero__badge-off">UP TO OFF</div>
-        </div>
-      </section>
+      {/* ── Hero slider ──────────────────────────────────── */}
+      <HeroSlider />
 
       {/* ── Announcement bar ─────────────────────────────── */}
       <div style={{background:'#FFF0EB', padding:'12px 24px', textAlign:'center', fontSize:'0.95rem', fontWeight:700, color:'#FF6B35'}}>

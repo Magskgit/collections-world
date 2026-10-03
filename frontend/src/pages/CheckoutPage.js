@@ -31,8 +31,12 @@ export default function CheckoutPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!form.customer_name || !form.customer_phone || !form.shipping_address) {
+    if (!form.customer_name || !form.customer_phone || !form.customer_email || !form.shipping_address) {
       toast.error('Please fill in all required fields'); return;
+    }
+    const phone = form.customer_phone.replace(/[\s\-+()]/g, '').replace(/^91(?=\d{10}$)/, '');
+    if (!/^[6-9]\d{9}$/.test(phone)) {
+      toast.error('Please enter a valid 10-digit mobile number'); return;
     }
     setSubmitting(true);
     try {
@@ -44,7 +48,11 @@ export default function CheckoutPage() {
       clearCart();
       navigate(`/order-success/${order.order_number}`);
     } catch (err) {
-      toast.error(err.response?.data?.detail || 'Failed to place order. Please try again.');
+      const detail = err.response?.data?.detail;
+      toast.error(
+        Array.isArray(detail) ? (detail[0]?.msg || '').replace(/^Value error, /, '') || 'Please check your details'
+        : detail || 'Failed to place order. Please try again.'
+      );
     } finally {
       setSubmitting(false);
     }
@@ -72,12 +80,12 @@ export default function CheckoutPage() {
               </div>
               <div className="form-group">
                 <label>Phone Number *</label>
-                <input {...field('customer_phone')} placeholder="10-digit mobile number" required />
+                <input {...field('customer_phone')} type="tel" inputMode="numeric" placeholder="10-digit mobile number" required />
               </div>
             </div>
             <div className="form-group">
-              <label>Email Address</label>
-              <input {...field('customer_email')} type="email" placeholder="your@email.com" />
+              <label>Email Address *</label>
+              <input {...field('customer_email')} type="email" placeholder="your@email.com" required />
             </div>
             <div className="form-group">
               <label>Delivery Address *</label>

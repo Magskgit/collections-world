@@ -1,4 +1,5 @@
-from pydantic import BaseModel, EmailStr
+import re
+from pydantic import BaseModel, EmailStr, field_validator
 from typing import Optional, List
 from datetime import datetime
 
@@ -64,6 +65,24 @@ class OrderCreate(BaseModel):
     customer_name: str
     customer_email: str
     customer_phone: str
+
+    @field_validator("customer_email")
+    @classmethod
+    def _email_required(cls, v):
+        v = v.strip()
+        if not re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", v):
+            raise ValueError("A valid email address is required")
+        return v
+
+    @field_validator("customer_phone")
+    @classmethod
+    def _phone_required(cls, v):
+        digits = re.sub(r"[\s\-+()]", "", v)
+        if digits.startswith("91") and len(digits) == 12:
+            digits = digits[2:]
+        if not re.fullmatch(r"[6-9]\d{9}", digits):
+            raise ValueError("A valid 10-digit mobile number is required")
+        return digits
     shipping_address: str
     payment_method: str = "cod"
     notes: Optional[str] = None

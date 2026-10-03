@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, HTTPException, UploadFile, File, Query
+from fastapi import FastAPI, Depends, HTTPException, UploadFile, File, Query, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import JSONResponse
@@ -9,6 +9,7 @@ from datetime import timedelta
 import uuid, os, shutil
 
 import models, schemas
+from notifications import send_order_email
 from database import engine, get_db, DATA_DIR
 from auth import (
     verify_password, get_password_hash, create_access_token,
@@ -120,7 +121,7 @@ def get_product(product_id: int, db: Session = Depends(get_db)):
 #  ORDERS
 # ════════════════════════════════════════════════════════════
 @app.post("/orders", response_model=schemas.OrderOut, tags=["Orders"])
-def create_order(order_in: schemas.OrderCreate, db: Session = Depends(get_db)):
+def create_order(order_in: schemas.OrderCreate, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
     subtotal = 0.0
     items_to_create = []
 
@@ -162,10 +163,12 @@ def create_order(order_in: schemas.OrderCreate, db: Session = Depends(get_db)):
 
     db.commit()
     db.refresh(order)
-    return db.query(models.Order).options(
+    full_order = db.query(models.Order).options(
         joinedload(models.Order.items).joinedload(models.OrderItem.product)
         .joinedload(models.Product.category)
     ).filter_by(id=order.id).first()
+    background_tasks.add_task(send_order_email, full_order)
+    return full_order
 
 
 @app.get("/orders/{order_number}", response_model=schemas.OrderOut, tags=["Orders"])
