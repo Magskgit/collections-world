@@ -1,4 +1,5 @@
 """Run once to populate the database with initial data."""
+import os
 from database import SessionLocal, engine
 import models
 from auth import get_password_hash
@@ -55,9 +56,18 @@ PRODUCTS = [
 def seed():
     db = SessionLocal()
     try:
-        if not db.query(models.Admin).filter_by(username="admin").first():
-            db.add(models.Admin(username="admin", hashed_password=get_password_hash("admin@CW2024")))
-            print("✅ Admin user created  (username: admin | password: admin@CW2024)")
+        # Admin password comes from ADMIN_PASSWORD (set it in Railway); it is
+        # re-applied on every start so changing the variable changes the login.
+        admin_password = os.environ.get("ADMIN_PASSWORD", "admin@CW2024")
+        admin = db.query(models.Admin).filter_by(username="admin").first()
+        if not admin:
+            db.add(models.Admin(username="admin", hashed_password=get_password_hash(admin_password)))
+            print("✅ Admin user created (username: admin)")
+        else:
+            admin.hashed_password = get_password_hash(admin_password)
+            print("✅ Admin password synced from ADMIN_PASSWORD")
+        if "ADMIN_PASSWORD" not in os.environ:
+            print("⚠️  ADMIN_PASSWORD not set – using insecure default!")
 
         cat_map = {}
         for c in CATEGORIES:

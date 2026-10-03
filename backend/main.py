@@ -9,7 +9,7 @@ from datetime import timedelta
 import uuid, os, shutil
 
 import models, schemas
-from database import engine, get_db
+from database import engine, get_db, DATA_DIR
 from auth import (
     verify_password, get_password_hash, create_access_token,
     get_current_admin, ACCESS_TOKEN_EXPIRE_MINUTES
@@ -40,6 +40,10 @@ app.add_middleware(
 
 # ── Static files ──────────────────────────────────────────
 os.makedirs("static/images", exist_ok=True)
+UPLOAD_DIR = os.path.join(DATA_DIR, "uploads")
+os.makedirs(UPLOAD_DIR, exist_ok=True)
+# Uploaded product images live on the persistent volume; mount before /static
+app.mount("/static/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 DISCOUNT_PERCENTAGE   = 50   # max discount
@@ -251,10 +255,10 @@ async def upload_product_image(
         raise HTTPException(404, "Product not found")
     ext = os.path.splitext(file.filename)[1]
     filename = f"product_{product_id}{ext}"
-    path = f"static/images/{filename}"
+    path = os.path.join(UPLOAD_DIR, filename)
     with open(path, "wb") as f:
         shutil.copyfileobj(file.file, f)
-    p.image_url = f"/static/images/{filename}"
+    p.image_url = f"/static/uploads/{filename}"
     db.commit()
     return {"image_url": p.image_url}
 
